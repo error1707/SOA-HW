@@ -1,0 +1,16 @@
+{
+    "AvroDeserializeBigStruct": 119,
+    "AvroSerializeBigStruct": 50,
+    "JSONDeserializeBigStruct": 55,
+    "JSONSerializeBigStruct": 26,
+    "MessagePackDeserializeBigStruct": 16,
+    "MessagePackSerializeBigStruct": 385,
+    "NativeDeserializeBigStruct": 45,
+    "NativeSerializeBigStruct": 38,
+    "ProtobufDeserializeBigStruct": 18,
+    "ProtobufSerializeBigStruct": 15,
+    "XMLDeserializeBigStruct": 140,
+    "XMLSerializeBigStruct": 101,
+    "YAMLDeserializeBigStruct": 182,
+    "YAMLSerializeBigStruct": 240
+}

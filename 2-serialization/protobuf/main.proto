@@ -1,0 +1,17 @@
+syntax = "proto3";
+package main;
+
+option go_package = "./";
+
+message SmallStruct {
+  string SomeString = 1;
+  int32 SomeInt = 2;
+}
+
+message BigStruct {
+  string SomeText = 1;
+  int32 SomeInt = 2;
+  float SomeFloat = 3;
+  map<string, string> SomeMap = 4;
+  repeated SmallStruct SomeArray = 5;
+}
