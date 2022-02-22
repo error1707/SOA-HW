@@ -1,10 +1,11 @@
 package main
 
 import (
-	pb "SOA/protobuf"
+	pb "2-serialization/protobuf"
 	"encoding/gob"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	avro "github.com/leboncoin/avrocado"
 	"github.com/vmihailenco/msgpack/v5"
 	"google.golang.org/protobuf/proto"
@@ -12,6 +13,7 @@ import (
 	"io"
 	"os"
 	"reflect"
+	"sort"
 	"time"
 )
 
@@ -60,11 +62,11 @@ func GetFile(name string) *os.File {
 	return file
 }
 
-func MeasureBigStruct() (map[string]int64, map[string]int64) {
+func MeasureBigStruct() (map[string]float64, map[string]int64) {
 	var enc Encodable
 	var dec Decodable
 	var res BigStruct
-	timeMeasurements := map[string]int64{}
+	timeMeasurements := map[string]float64{}
 	byteMeasurements := map[string]int64{}
 
 	// -------------------- Native --------------------
@@ -72,7 +74,7 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	enc = gob.NewEncoder(file)
 	start := time.Now()
 	err := enc.Encode(testBigStruct)
-	timeMeasurements["NativeSerializeBigStruct"] = time.Since(start).Microseconds()
+	timeMeasurements["native(gob) serialize"] = float64(time.Since(start).Microseconds()) / 1000000
 	if err != nil {
 		panic(err)
 	}
@@ -86,12 +88,12 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	if err != nil {
 		panic(err)
 	}
-	byteMeasurements["NativeBigStruct"] = stat.Size()
+	byteMeasurements["native (gob)"] = stat.Size()
 
 	dec = gob.NewDecoder(file)
 	start = time.Now()
 	err = dec.Decode(&res)
-	timeMeasurements["NativeDeserializeBigStruct"] = time.Since(start).Microseconds()
+	timeMeasurements["native(gob) deserialize"] = float64(time.Since(start).Microseconds()) / 1000000
 	if err != nil {
 		panic(err)
 	}
@@ -109,7 +111,7 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	enc = xml.NewEncoder(file)
 	start = time.Now()
 	err = enc.Encode(testBigStruct)
-	timeMeasurements["XMLSerializeBigStruct"] = time.Since(start).Microseconds()
+	timeMeasurements["xml serialize"] = float64(time.Since(start).Microseconds()) / 1000000
 	if err != nil {
 		panic(err)
 	}
@@ -122,12 +124,12 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	if err != nil {
 		panic(err)
 	}
-	byteMeasurements["XMLBigStruct"] = stat.Size()
+	byteMeasurements["xml"] = stat.Size()
 
 	dec = xml.NewDecoder(file)
 	start = time.Now()
 	err = dec.Decode(&res)
-	timeMeasurements["XMLDeserializeBigStruct"] = time.Since(start).Microseconds()
+	timeMeasurements["xml deserialize"] = float64(time.Since(start).Microseconds()) / 1000000
 	if err != nil {
 		panic(err)
 	}
@@ -145,7 +147,7 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	enc = json.NewEncoder(file)
 	start = time.Now()
 	err = enc.Encode(testBigStruct)
-	timeMeasurements["JSONSerializeBigStruct"] = time.Since(start).Microseconds()
+	timeMeasurements["json serialize"] = float64(time.Since(start).Microseconds()) / 1000000
 	if err != nil {
 		panic(err)
 	}
@@ -158,12 +160,12 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	if err != nil {
 		panic(err)
 	}
-	byteMeasurements["JSONBigStruct"] = stat.Size()
+	byteMeasurements["json"] = stat.Size()
 
 	dec = json.NewDecoder(file)
 	start = time.Now()
 	err = dec.Decode(&res)
-	timeMeasurements["JSONDeserializeBigStruct"] = time.Since(start).Microseconds()
+	timeMeasurements["json deserialize"] = float64(time.Since(start).Microseconds()) / 1000000
 	if err != nil {
 		panic(err)
 	}
@@ -181,7 +183,7 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	enc = yaml.NewEncoder(file)
 	start = time.Now()
 	err = enc.Encode(testBigStruct)
-	timeMeasurements["YAMLSerializeBigStruct"] = time.Since(start).Microseconds()
+	timeMeasurements["yaml serialize"] = float64(time.Since(start).Microseconds()) / 1000000
 	if err != nil {
 		panic(err)
 	}
@@ -194,12 +196,12 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	if err != nil {
 		panic(err)
 	}
-	byteMeasurements["YAMLBigStruct"] = stat.Size()
+	byteMeasurements["yaml"] = stat.Size()
 
 	dec = yaml.NewDecoder(file)
 	start = time.Now()
 	err = dec.Decode(&res)
-	timeMeasurements["YAMLDeserializeBigStruct"] = time.Since(start).Microseconds()
+	timeMeasurements["yaml deserialize"] = float64(time.Since(start).Microseconds()) / 1000000
 	if err != nil {
 		panic(err)
 	}
@@ -229,7 +231,7 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	}
 	start = time.Now()
 	data, err := proto.Marshal(&protoStruct)
-	timeMeasurements["ProtobufSerializeBigStruct"] = time.Since(start).Microseconds()
+	timeMeasurements["protobuf serialize"] = float64(time.Since(start).Microseconds()) / 1000000
 	if err != nil {
 		panic(err)
 	}
@@ -246,7 +248,7 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	if err != nil {
 		panic(err)
 	}
-	byteMeasurements["ProtobufBigStruct"] = stat.Size()
+	byteMeasurements["protobuf"] = stat.Size()
 
 	data = make([]byte, len(data))
 	_, err = file.Read(data)
@@ -256,7 +258,7 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	protoRes := pb.BigStruct{}
 	start = time.Now()
 	err = proto.Unmarshal(data, &protoRes)
-	timeMeasurements["ProtobufDeserializeBigStruct"] = time.Since(start).Microseconds()
+	timeMeasurements["protobuf deserialize"] = float64(time.Since(start).Microseconds()) / 1000000
 	if err != nil {
 		panic(err)
 	}
@@ -271,7 +273,7 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	enc = msgpack.NewEncoder(file)
 	start = time.Now()
 	err = enc.Encode(testBigStruct)
-	timeMeasurements["MessagePackSerializeBigStruct"] = time.Since(start).Microseconds()
+	timeMeasurements["message_pack serialize"] = float64(time.Since(start).Microseconds()) / 1000000
 	if err != nil {
 		panic(err)
 	}
@@ -284,12 +286,12 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	if err != nil {
 		panic(err)
 	}
-	byteMeasurements["MessagePackBigStruct"] = stat.Size()
+	byteMeasurements["message_pack"] = stat.Size()
 
 	dec = msgpack.NewDecoder(file)
 	start = time.Now()
 	err = dec.Decode(&res)
-	timeMeasurements["MessagePackDeserializeBigStruct"] = time.Since(start).Microseconds()
+	timeMeasurements["message_pack deserialize"] = float64(time.Since(start).Microseconds()) / 1000000
 	if err != nil {
 		panic(err)
 	}
@@ -327,7 +329,7 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	}
 	start = time.Now()
 	data, err = codec.Marshal(testBigStruct)
-	timeMeasurements["AvroSerializeBigStruct"] = time.Since(start).Microseconds()
+	timeMeasurements["avro serialize"] = float64(time.Since(start).Microseconds()) / 1000000
 	if err != nil {
 		panic(err)
 	}
@@ -344,7 +346,7 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	if err != nil {
 		panic(err)
 	}
-	byteMeasurements["AvroBigStruct"] = stat.Size()
+	byteMeasurements["avro"] = stat.Size()
 
 	data = make([]byte, len(data))
 	_, err = file.Read(data)
@@ -353,7 +355,7 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	}
 	start = time.Now()
 	err = codec.Unmarshal(data, &res)
-	timeMeasurements["AvroDeserializeBigStruct"] = time.Since(start).Microseconds()
+	timeMeasurements["avro deserialize"] = float64(time.Since(start).Microseconds()) / 1000000
 	if !reflect.DeepEqual(testBigStruct, res) {
 		panic(`Avro BigStruct not equal`)
 	}
@@ -361,9 +363,10 @@ func MeasureBigStruct() (map[string]int64, map[string]int64) {
 	return timeMeasurements, byteMeasurements
 }
 
-func repeatFuncN(f func() (map[string]int64, map[string]int64), n int) (map[string]int64, map[string]int64) {
-	tRes := map[string]int64{}
-	var bRes, t map[string]int64
+func repeatFuncN(f func() (map[string]float64, map[string]int64), n int) (map[string]float64, map[string]int64) {
+	tRes := map[string]float64{}
+	var t map[string]float64
+	var bRes map[string]int64
 	for i := 0; i < n; i++ {
 		t, bRes = f()
 		for k, v := range t {
@@ -371,7 +374,7 @@ func repeatFuncN(f func() (map[string]int64, map[string]int64), n int) (map[stri
 		}
 	}
 	for k, v := range tRes {
-		tRes[k] = v / int64(n)
+		tRes[k] = v / float64(n)
 	}
 	return tRes, bRes
 }
@@ -398,4 +401,27 @@ func main() {
 	t, b := repeatFuncN(MeasureBigStruct, 10000)
 	SerializeResults(t, "time_results")
 	SerializeResults(b, "byte_results")
+
+	fmt.Println("---------- time results (sec) ----------")
+	keys := make([]string, len(t))
+	i := 0
+	for k := range t {
+		keys[i] = k
+		i++
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		fmt.Printf("%-25s %14.7f\n", k, t[k])
+	}
+	fmt.Println("--------- size results (byte) ----------")
+	keys = make([]string, len(b))
+	i = 0
+	for k := range b {
+		keys[i] = k
+		i++
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		fmt.Printf("%-25s %14d\n", k, b[k])
+	}
 }

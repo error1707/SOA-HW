@@ -1,9 +1,9 @@
 {
-    "AvroBigStruct": 3214,
-    "JSONBigStruct": 3693,
-    "MessagePackBigStruct": 3462,
-    "NativeBigStruct": 3460,
-    "ProtobufBigStruct": 3333,
-    "XMLBigStruct": 4372,
-    "YAMLBigStruct": 3764
+    "avro": 4191,
+    "json": 5443,
+    "message_pack": 4844,
+    "native (gob)": 4500,
+    "protobuf": 4509,
+    "xml": 7272,
+    "yaml": 5624
 }

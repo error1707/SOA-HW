@@ -1,4 +1,4 @@
-module SOA
+module 2-serialization
 
 go 1.17
 

@@ -48,14 +48,14 @@ func genSmallStruct() SmallStruct {
 
 func genBigStruct() BigStruct {
 	var arr []SmallStruct
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 30; i++ {
 		arr = append(arr, genSmallStruct())
 	}
 	return BigStruct{
 		SomeText:  bigText,
 		SomeInt:   rand.Int31(),
 		SomeFloat: rand.Float32(),
-		SomeMap:   genMap(20),
+		SomeMap:   genMap(50),
 		SomeArray: arr,
 	}
 }
