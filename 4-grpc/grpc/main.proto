@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+option go_package = "./";
+
+service Mafia {
+  rpc SetUsername (Username) returns (UUID) {}
+  rpc ListRooms (NoArgs) returns (ListRoomsResponse) {}
+  rpc PlayGame (stream GameAction) returns (stream GameAction) {}
+  rpc GetPlayers (UUID) returns (stream PlayersChange) {}
+  rpc StartChat (stream ChatMessage) returns (stream ChatMessage) {}
+}
+
+message NoArgs {}
+message NoReturn {}
+
+message UUID {
+  bytes Value = 1;
+}
+
+message Username {
+  string Username = 1;
+  optional UUID UserID = 2;
+}
+
+message ListRoomsResponse {
+  message Room {
+    string Name = 1;
+    uint32 UserNum = 2;
+  }
+  repeated Room Rooms = 1;
+}
+
+message GameAction {
+  enum ActionType {
+    ENTER = 0;
+    LEAVE = 1;
+    ROLE = 2;
+    KILL = 3;
+    VOTE = 4;
+    CIT_WIN = 5;
+    MAF_WIN = 6;
+
+    INFO = 99;
+  }
+
+  enum Roles {
+    MAFIA = 0;
+    CITIZEN = 1;
+  }
+
+  ActionType Action = 1;
+  optional UUID UserID = 2;
+  optional string Data = 3;
+  optional Roles Role = 4;
+}
+
+message PlayersChange {
+  enum ChangeType {
+    ADD = 0;
+    REMOVE = 1;
+  }
+
+  ChangeType Action = 1;
+  UUID UserID = 2;
+  optional string Username = 3;
+}
+
+message ChatMessage {
+  UUID UserID = 1;
+  string text = 2;
+}
