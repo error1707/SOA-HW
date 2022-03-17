@@ -24,10 +24,10 @@ const HelpText = "\n" +
 	"\n" +
 	"help                       printing this help message\n" +
 	"connect <ip_addr:port>     connect to server with specified ip and port\n" +
-	"username <username>        change username\n" +
 	"\n" +
 	"Commands available after connecting to server:\n" +
 	"\n" +
+	"username <username>        change username\n" +
 	"disconnect                 disconnect from current server\n" +
 	"play                       enters game lobby. Game starts when 6 players enter lobby\n" +
 	"\n" +
