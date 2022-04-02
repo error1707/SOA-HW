@@ -1,0 +1,4 @@
+pika
+requests
+validators
+beautifulsoup4

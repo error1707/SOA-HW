@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option go_package = "./";
+
+service WikiPathLengthMeter {
+  rpc GetID (Empty) returns (UserID) {}
+  rpc MeasurePath(PathRequest) returns (Empty) {}
+  rpc GetResults(UserID) returns (stream Result) {}
+}
+
+message Empty {}
+
+message PathRequest {
+  UserID User = 1;
+  string URL1 = 2;
+  string URL2 = 3;
+}
+
+message UserID {
+  uint64 ID = 1;
+}
+
+message Result {
+  string URL1 = 1;
+  string URL2 = 2;
+  repeated string Path = 3;
+}
