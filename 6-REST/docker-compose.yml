@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  server:
+#    build:
+#      context: ./
+#      dockerfile: server.dockerfile
+    image: error1707/rest_server
+    ports:
+      - "8080:8080"
+    volumes:
+      - reports:/reports
+    depends_on:
+      - rabbitmq
+      - postgres
+
+  worker:
+#    build:
+#      context: ./
+#      dockerfile: worker.dockerfile
+    image: error1707/rest_worker
+    volumes:
+      - reports:/reports
+    depends_on:
+      - rabbitmq
+
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+
+  pgmigrate:
+    image: urbica/pgmigrate
+    entrypoint: [ "/bin/sh","-c" ]
+    command:
+      - pgmigrate -c postgresql://postgres:password@postgres:5432 -t latest migrate
+    volumes:
+      - ./migrations:/migrations
+    depends_on:
+      - postgres
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+volumes:
+  reports:

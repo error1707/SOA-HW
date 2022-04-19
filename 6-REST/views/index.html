@@ -1,0 +1,367 @@
+{{define "head"}}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script>
+        function switchMode(name) {
+            $(".forms").addClass("d-none");
+            $(`#${name}`).removeClass("d-none");
+        }
+
+        const numeric = ["win_count", "lose_count", "time_in_game"]
+
+        async function CreateUser() {
+            const data = await getFormData('createUser');
+            $.ajax({
+                url: '/user',
+                dataType: 'json',
+                type: 'post',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                processData: false,
+                success: function(data){
+                    $('#response pre').html(JSON.stringify(data, null, 2));
+                },
+                error: function(jqXHR, errorThrown){
+                    if (jqXHR.responseJSON) {
+                        $('#response pre').html(JSON.stringify(jqXHR.responseJSON, null, 2));
+                    } else {
+                        $('#response pre').html(jqXHR.statusText);
+                    }
+                }
+            });
+        }
+
+        async function GetUser() {
+            const data = await getFormData('getUser');
+            $.ajax({
+                url: `/user/${data.username}`,
+                dataType: 'json',
+                type: 'get',
+                contentType: 'application/json',
+                processData: false,
+                success: function(data){
+                    $('#response pre').html(JSON.stringify(data, null, 2));
+                },
+                error: function(jqXHR, errorThrown){
+                    console.log(jqXHR);
+                    if (jqXHR.responseJSON) {
+                        $('#response pre').html(JSON.stringify(jqXHR.responseJSON, null, 2));
+                    } else {
+                        $('#response pre').html(jqXHR.statusText);
+                    }
+                }
+            });
+        }
+
+        async function UpdateUser() {
+            const data = await getFormData('updateUser');
+            const user = data.cur_username;
+            delete data.cur_username;
+            for (let key in data) {
+                if (Number.isNaN(data[key]) || data[key] === "") {
+                    delete data[key]
+                }
+            }
+            console.log(data);
+            $.ajax({
+                url: `/user/${user}`,
+                dataType: 'json',
+                type: 'patch',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                processData: false,
+                success: function(data){
+                    $('#response pre').html(JSON.stringify(data, null, 2));
+                },
+                error: function(jqXHR, errorThrown){
+                    console.log(jqXHR);
+                    if (jqXHR.responseJSON) {
+                        $('#response pre').html(JSON.stringify(jqXHR.responseJSON, null, 2));
+                    } else {
+                        $('#response pre').html(jqXHR.statusText);
+                    }
+                }
+            });
+        }
+
+        async function DeleteUser() {
+            const data = await getFormData('deleteUser');
+            $.ajax({
+                url: `/user/${data.username}`,
+                dataType: 'json',
+                type: 'delete',
+                contentType: 'application/json',
+                processData: false,
+                success: function(data, textStatus, jqXHR){
+                    if (data) {
+                        $('#response pre').html(JSON.stringify(data, null, 2));
+                    } else {
+                        $('#response pre').html(jqXHR.statusText);
+                    }
+                },
+                error: function(jqXHR, errorThrown){
+                    console.log(jqXHR);
+                    if (jqXHR.responseJSON) {
+                        $('#response pre').html(JSON.stringify(jqXHR.responseJSON, null, 2));
+                    } else {
+                        $('#response pre').html(jqXHR.statusText);
+                    }
+                }
+            });
+        }
+
+        async function GetAllUsers() {
+            $.ajax({
+                url: `/users`,
+                dataType: 'json',
+                type: 'get',
+                contentType: 'application/json',
+                processData: false,
+                success: function(data){
+                    $('#response pre').html(JSON.stringify(data, null, 2));
+                },
+                error: function(jqXHR, errorThrown){
+                    console.log(jqXHR);
+                    if (jqXHR.responseJSON) {
+                        $('#response pre').html(JSON.stringify(jqXHR.responseJSON, null, 2));
+                    } else {
+                        $('#response pre').html(jqXHR.statusText);
+                    }
+                }
+            });
+        }
+
+        async function CreateReport() {
+            const data = await getFormData('createReport');
+            $.ajax({
+                url: `/user/${data.username}/report`,
+                dataType: 'json',
+                type: 'post',
+                contentType: 'application/json',
+                processData: false,
+                success: function(data){
+                    $('#response pre').html(`<a href="/report/${data['job_id']}">Report</a>`);
+                },
+                error: function(jqXHR, errorThrown){
+                    if (jqXHR.responseJSON) {
+                        $('#response pre').html(JSON.stringify(jqXHR.responseJSON, null, 2));
+                    } else {
+                        $('#response pre').html(jqXHR.statusText);
+                    }
+                }
+            });
+        }
+
+        async function getFormData(name) {
+            const formData = new FormData($(`form#${name}`).get(0));
+            let formProps = Object.fromEntries(formData);
+            if ('avatar' in formProps) {
+                formProps.avatar = await getAsByteArray(formProps.avatar);
+            }
+            for (let i of numeric) {
+                if (i in formProps) {
+                    formProps[i] = parseInt(formProps[i]);
+                }
+            }
+            return formProps;
+        }
+
+        async function getAsByteArray(file) {
+            return new Uint8Array(await readFile(file));
+        }
+
+        function readFile(file) {
+            return new Promise((resolve, reject) => {
+                // Create file reader
+                let reader = new FileReader()
+
+                // Register event listeners
+                reader.addEventListener("loadend", e => resolve(e.target.result))
+                reader.addEventListener("error", reject)
+
+                // Read file
+                reader.readAsArrayBuffer(file)
+            })
+        }
+    </script>
+
+    <style type="text/css" rel="stylesheet">
+        .d-none {
+            display: none;
+        }
+        .column {
+            float: left;
+            width: 50%;
+        }
+    </style>
+{{end}}
+
+{{define "content"}}
+    <div class="column">
+        <div>
+            <label>
+                <input type="radio" name="user" onclick="switchMode('createUser')">
+                Create User
+            </label>
+
+            <label>
+                <input type="radio" name="user" onclick="switchMode('getUser')">
+                Get User
+            </label>
+
+            <label>
+                <input type="radio" name="user" onclick="switchMode('updateUser')">
+                Update User
+            </label>
+
+            <label>
+                <input type="radio" name="user" onclick="switchMode('deleteUser')">
+                Delete User
+            </label>
+
+            <label>
+                <input type="radio" name="user" onclick="switchMode('getAllUsers')">
+                Get All Users
+            </label>
+
+            <label>
+                <input type="radio" name="user" onclick="switchMode('createReport')">
+                Create report for user
+            </label>
+        </div>
+        <br>
+        <!-- Create Form -->
+        <div class="d-none forms" id="createUser">
+            <form id=createUser>
+                <label>
+                    Username
+                    <input type="text" name="username" required>
+                </label>
+                <br>
+                <label>
+                    Email
+                    <input type="email" name="email" required>
+                </label>
+                <br>
+                <label>
+                    Gender
+                    <select name="gender" required>
+                        <option value="m">Male</option>
+                        <option value="f">Female</option>
+                    </select>
+                </label>
+                <br>
+                <label>
+                    Avatar
+                    <input type="file" name="avatar" accept="image/*">
+                </label>
+                <br>
+                <label>
+                    Win Count
+                    <input type="number" name="win_count">
+                </label>
+                <br>
+                <label>
+                    Lose count
+                    <input type="number" name="lose_count">
+                </label>
+                <br>
+                <label>
+                    Time in game
+                    <input type="number" name="time_in_game">
+                </label>
+            </form>
+            <input type="button" value="Create" onclick="CreateUser()">
+        </div>
+        <!-- Get Form -->
+        <div class="d-none forms" id="getUser">
+            <form id=getUser>
+                <label>
+                    Username
+                    <input type="text" name="username" required>
+                </label>
+            </form>
+            <input type="button" value="Get" onclick="GetUser()">
+        </div>
+        <!-- Update Form -->
+        <div class="d-none forms" id="updateUser">
+            <form id=updateUser>
+                <label>
+                    Current username
+                    <input type="text" name="cur_username" required>
+                </label>
+                <br>
+                <br>
+                <label>
+                    Username
+                    <input type="text" name="username">
+                </label>
+                <br>
+                <label>
+                    Email
+                    <input type="email" name="email">
+                </label>
+                <br>
+                <label>
+                    Gender
+                    <select name="gender">
+                        <option value="" selected disabled>Select gender</option>
+                        <option value="m">Male</option>
+                        <option value="f">Female</option>
+                    </select>
+                </label>
+                <br>
+                <label>
+                    Avatar
+                    <input type="file" name="avatar" accept="image/*">
+                </label>
+                <br>
+                <label>
+                    Win Count
+                    <input type="number" name="win_count">
+                </label>
+                <br>
+                <label>
+                    Lose count
+                    <input type="number" name="lose_count">
+                </label>
+                <br>
+                <label>
+                    Time in game
+                    <input type="number" name="time_in_game">
+                </label>
+            </form>
+            <input type="button" value="Update" onclick="UpdateUser()">
+        </div>
+        <!-- Delete Form -->
+        <div class="d-none forms" id="deleteUser">
+            <form id=deleteUser>
+                <label>
+                    Username
+                    <input type="text" name="username" required>
+                </label>
+            </form>
+            <input type="button" value="Delete" onclick="DeleteUser()">
+        </div>
+        <!-- Get all users -->
+        <div class="d-none forms" id="getAllUsers">
+            <input type="button" value="Get" onclick="GetAllUsers()">
+        </div>
+        <!-- Create report -->
+        <div class="d-none forms" id="createReport">
+            <form id="createReport">
+                <label>
+                    Username
+                    <input type="text" name="username" required>
+                </label>
+            </form>
+            <input type="button" value="Get" onclick="CreateReport()">
+        </div>
+    </div>
+    <div class="column" id="response">
+        Response
+        <br>
+        <br>
+        <pre>
+        </pre>
+    </div>
+{{end}}

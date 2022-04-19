@@ -1,0 +1,114 @@
+openapi: 3.0.3
+info:
+  title: MafiaProfile
+  description: MafiaProfile
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+
+paths:
+  /users:
+    get:
+      description: Get all existing users
+      responses:
+        '200':
+          description: Successfully returned a list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /user:
+    post:
+      description: Create new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+
+      responses:
+        '201':
+          description: Successfully created new user
+        '400':
+          description: Bad request
+
+  /user/{username}:
+    parameters:
+      - name: username
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      description: Get user by username
+      responses:
+        '200':
+          description: Successfully returned user
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+    patch:
+      description: Update user info by username
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPatch'
+      responses:
+        '200':
+          description: Successfully updated user
+#        '404':
+#          description: User not found
+        '500':
+          description: Internal server error
+    delete:
+      description: Delete user by username
+      responses:
+        '200':
+          description: Successfully deleted user
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - username
+        - email
+        - gender
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        gender:
+          type: string
+        win_count:
+          type: string
+        lose_count:
+          type: string
+        time_in_game:
+          type: string
+
+    UserPatch:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        gender:
+          type: string
+        win_count:
+          type: string
+        lose_count:
+          type: string
+        time_in_game:
+          type: string
